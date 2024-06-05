@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+        }
+        .cell:focus {
+            outline: 2px solid #007bff;
+        }
+        .hidden {
+            display: none;
+        }
+        #winningMessage {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+        .x {
+            color: red;
+        }
+        .circle {
+            color: green;
+        }
+  #startButton{
+    background:linear-gradient(#0d8c95,rgb(27, 255, 221));
+    height: 43px;
+    width: 55px;
+    border-radius: 10px;
+    border-color: black;
+    color: white;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-weight: 100;
+    font-size: large;
+  }
+  #startButton:hover{
+    background:linear-gradient(#02f30e,rgb(23, 104, 44));
+  }
+  
+  #resetButton{
+    background:linear-gradient(#0d8c95,rgb(27, 255, 221));
+    height: 43px;
+    width: 55px;
+    border-radius: 10px;
+    border-color: black;
+    color: white;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-weight: 100;
+    font-size: large;
+  }
+  #resetButton:hover{
+    background:linear-gradient(#02f30e,rgb(23, 104, 44));
+  }
+  
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+        <button id="startButton">Start</button>
+        <button id="resetButton" class="hidden">Reset</button>
+        <div id="board" class="board hidden">
+            <div class="cell" data-cell tabindex="0"></div>
+            <div class="cell" data-cell tabindex="0"></div>
+            <div class="cell" data-cell tabindex="0"></div>
+            <div class="cell" data-cell tabindex="0"></div>
+            <div class="cell" data-cell tabindex="0"></div>
+            <div class="cell" data-cell tabindex="0"></div>
+            <div class="cell" data-cell tabindex="0"></div>
+            <div class="cell" data-cell tabindex="0"></div>
+            <div class="cell" data-cell tabindex="0"></div>
+        </div>
+        <div id="winningMessage" class="hidden"></div>
+    </div>
+
+    <script>
+        const X_CLASS = 'x';
+        const CIRCLE_CLASS = 'circle';
+        const WINNING_COMBINATIONS = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        const cellElements = document.querySelectorAll('[data-cell]');
+        const board = document.getElementById('board');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        const winningMessageElement = document.getElementById('winningMessage');
+        let circleTurn;
+
+        startButton.addEventListener('click', startGame);
+        resetButton.addEventListener('click', resetGame);
+        document.addEventListener('keydown', handleKeydown);
+
+        function startGame() {
+            circleTurn = false;
+            cellElements.forEach(cell => {
+                cell.classList.remove(X_CLASS);
+                cell.classList.remove(CIRCLE_CLASS);
+                cell.textContent = '';
+                cell.removeEventListener('click', handleClick);
+                cell.addEventListener('click', handleClick, { once: true });
+            });
+            setBoardHoverClass();
+            winningMessageElement.classList.add('hidden');
+            board.classList.remove('hidden');
+            startButton.classList.add('hidden');
+            resetButton.classList.remove('hidden');
+            cellElements[0].focus();  // Focus on the first cell
+        }
+
+        function resetGame() {
+            board.classList.add('hidden');
+            winningMessageElement.classList.add('hidden');
+            startButton.classList.remove('hidden');
+            resetButton.classList.add('hidden');
+        }
+
+        function handleClick(e) {
+            const cell = e.target;
+            const currentClass = circleTurn ? CIRCLE_CLASS : X_CLASS;
+            placeMark(cell, currentClass);
+        }
+
+        function handleKeydown(e) {
+            const focusedElement = document.activeElement;
+            if (!focusedElement.classList.contains('cell')) return;
+            const currentIndex = Array.from(cellElements).indexOf(focusedElement);
+
+            switch (e.key) {
+                case 'ArrowUp':
+                    if (currentIndex - 3 >= 0) cellElements[currentIndex - 3].focus();
+                    break;
+                case 'ArrowDown':
+                    if (currentIndex + 3 < 9) cellElements[currentIndex + 3].focus();
+                    break;
+                case 'ArrowLeft':
+                    if (currentIndex % 3 !== 0) cellElements[currentIndex - 1].focus();
+                    break;
+                case 'ArrowRight':
+                    if (currentIndex % 3 !== 2) cellElements[currentIndex + 1].focus();
+                    break;
+                case 'Enter':
+                case ' ':
+                    placeMark(focusedElement, circleTurn ? CIRCLE_CLASS : X_CLASS);
+                    break;
+            }
+        }
+
+        function placeMark(cell, currentClass) {
+            if (cell.classList.contains(X_CLASS) || cell.classList.contains(CIRCLE_CLASS)) return;
+            cell.classList.add(currentClass);
+            cell.textContent = currentClass === X_CLASS ? 'X' : 'O';
+            if (checkWin(currentClass)) {
+                endGame(false);
+            } else if (isDraw()) {
+                endGame(true);
+            } else {
+                swapTurns();
+                setBoardHoverClass();
+            }
+        }
+
+        function endGame(draw) {
+            if (draw) {
+                winningMessageElement.innerText = 'Draw!';
+            } else {
+                winningMessageElement.innerText = `${circleTurn ? "O's" : "X's"} Wins!`;
+            }
+            winningMessageElement.classList.remove('hidden');
+        }
+
+        function isDraw() {
+            return [...cellElements].every(cell => {
+                return cell.classList.contains(X_CLASS) || cell.classList.contains(CIRCLE_CLASS);
+            });
+        }
+
+        function swapTurns() {
+            circleTurn = !circleTurn;
+        }
+
+        function setBoardHoverClass() {
+            board.classList.remove(X_CLASS);
+            board.classList.remove(CIRCLE_CLASS);
+            if (circleTurn) {
+                board.classList.add(CIRCLE_CLASS);
+            } else {
+                board.classList.add(X_CLASS);
+            }
+        }
+
+        function checkWin(currentClass) {
+            return WINNING_COMBINATIONS.some(combination => {
+                return combination.every(index => {
+                    return cellElements[index].classList.contains(currentClass);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
